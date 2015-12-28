@@ -4,6 +4,9 @@ import fr.arlefebvre.leagueoflegends.domain.ChampionDto;
 import fr.arlefebvre.leagueoflegends.domain.ChampionListDto;
 import fr.arlefebvre.leagueoflegends.domain.ChampionStaticListDto;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -32,6 +36,18 @@ public class RiotApiController {
 
     private String getStaticDataBaseUrl(){
         return "https://global.api.pvp.net/api/lol/static-data/"+region+"/";
+    }
+
+    @Bean
+    public HealthIndicator riotGamesDevAPIKey(){
+        return () -> {
+            if(!key.isEmpty()){
+                return Health.up().build();
+            }
+            else{
+                return Health.down().withDetail("message","Dev API key is missing").build();
+            }
+        };
     }
 
     @RequestMapping("/me")
