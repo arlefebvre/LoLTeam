@@ -1,4 +1,4 @@
-package fr.arlefebvre.leagueoflegends;
+package fr.arlefebvre.leagueoflegends.controller;
 
 import fr.arlefebvre.leagueoflegends.domain.ChampionDto;
 import fr.arlefebvre.leagueoflegends.domain.ChampionListDto;
@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -30,29 +29,30 @@ public class RiotApiController {
     @Value("${api.region}")
     private String region;
 
-    private String getBaseUrl(){
-        return "https://"+region+".api.pvp.net/api/lol/"+region+"/";
+    private ChampionStaticListDto championsCache;
+
+    private String getBaseUrl() {
+        return "https://" + region + ".api.pvp.net/api/lol/" + region + "/";
     }
 
-    private String getStaticDataBaseUrl(){
-        return "https://global.api.pvp.net/api/lol/static-data/"+region+"/";
+    private String getStaticDataBaseUrl() {
+        return "https://global.api.pvp.net/api/lol/static-data/" + region + "/";
     }
 
     @Bean
-    public HealthIndicator riotGamesDevAPIKey(){
+    public HealthIndicator riotGamesDevAPIKey() {
         return () -> {
-            if(!key.isEmpty()){
+            if (!key.isEmpty()) {
                 return Health.up().build();
-            }
-            else{
-                return Health.down().withDetail("message","Dev API key is missing").build();
+            } else {
+                return Health.down().withDetail("message", "Dev API key is missing").build();
             }
         };
     }
 
     @RequestMapping("/me")
-    public String me(){
-        String uri = getBaseUrl()+"v1.4/summoner/by-name/Kohzal?api_key="+key;
+    public String me() {
+        String uri = getBaseUrl() + "v1.4/summoner/by-name/Kohzal?api_key=" + key;
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response = restTemplate.getForEntity(
                 uri,
@@ -62,8 +62,8 @@ public class RiotApiController {
     }
 
     @RequestMapping("/games")
-    public String games(){
-        String uri = getBaseUrl()+"v1.3/game/by-summoner/19521268/recent?api_key="+key;
+    public String games() {
+        String uri = getBaseUrl() + "v1.3/game/by-summoner/19521268/recent?api_key=" + key;
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response = restTemplate.getForEntity(
                 uri,
@@ -74,7 +74,7 @@ public class RiotApiController {
 
     @RequestMapping("/rotation")
     public List<String> rotation() {
-        String uri = getBaseUrl()+"v1.2/champion?freeToPlay=true&api_key="+key;
+        String uri = getBaseUrl() + "v1.2/champion?freeToPlay=true&api_key=" + key;
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<ChampionListDto> response = restTemplate.getForEntity(
                 uri,
@@ -84,21 +84,18 @@ public class RiotApiController {
         return champions.stream().map(c -> getChampionById(c.getId()).getName()).collect(Collectors.toList());
     }
 
-    private ChampionStaticListDto championsCache;
-
-    private ChampionDto getChampionById(long id){
-        if(championsCache == null)
-        {
-            String uri = getStaticDataBaseUrl()+"v1.2/champion?api_key="+key;
+    private ChampionDto getChampionById(long id) {
+        if (championsCache == null) {
+            String uri = getStaticDataBaseUrl() + "v1.2/champion?api_key=" + key;
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<ChampionStaticListDto> response = restTemplate.getForEntity(
                     uri,
                     ChampionStaticListDto.class);
-           championsCache =  response.getBody();
+            championsCache = response.getBody();
         }
 
-        for (ChampionDto c:championsCache.getData().values()){
-            if(c.getId() == id)
+        for (ChampionDto c : championsCache.getData().values()) {
+            if (c.getId() == id)
                 return c;
         }
 
