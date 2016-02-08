@@ -14,6 +14,8 @@ public class User {
     private String login;
     @Column
     private String description;
+    @Column
+    private Region region;
 
     public Integer getId() {
         return id;
@@ -37,5 +39,13 @@ public class User {
 
     public void setLogin(String login) {
         this.login = login;
+    }
+
+    public Region getRegion() {
+        return region;
+    }
+
+    public void setRegion(Region region) {
+        this.region = region;
     }
 }
